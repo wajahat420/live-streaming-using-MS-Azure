@@ -1,0 +1,39 @@
+{
+  "name": "rtmpclient",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "start": "react-native start",
+    "ios": "react-native run-ios",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "base-64": "^1.0.0",
+    "random-animal-name-generator": "^0.1.1",
+    "react": "16.13.1",
+    "react-native": "0.63.4",
+    "react-native-config": "^1.4.2",
+    "react-native-dialog": "^6.1.2",
+    "react-native-gesture-handler": "^1.9.0",
+    "react-native-nodemediaclient": "https://github.com/michelalbers/react-native-nodemediaclient/tarball/master",
+    "react-native-permissions": "^3.0.0",
+    "react-native-video": "^5.1.1",
+    "react-navigation": "^4.4.3"
+  },
+  "devDependencies": {
+    "@babel/core": "7.12.10",
+    "@babel/runtime": "7.12.5",
+    "@react-native-community/eslint-config": "1.1.0",
+    "babel-jest": "25.5.1",
+    "eslint": "6.8.0",
+    "jest": "25.5.4",
+    "metro-react-native-babel-preset": "0.59.0",
+    "react-test-renderer": "16.13.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

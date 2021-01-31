@@ -1,0 +1,6 @@
+rootProject.name = 'rtmpclient'
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
+include ':libbambuser'
+project(':libbambuser').projectDir = new File(rootProject.projectDir, './app/libbambuser.aar')
+
