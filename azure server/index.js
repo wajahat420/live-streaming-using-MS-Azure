@@ -8,6 +8,8 @@ const uuidv4 = require('uuid/v4');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const fetch = require('node-fetch');
+
 
 const MediaServices = require('azure-arm-mediaservices');
 // import { AzureMediaServices, AzureMediaServicesModels, AzureMediaServicesMappers } from "@azure/arm-mediaservices";
@@ -80,8 +82,8 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
   parseArguments();
     try {
 
-      const list = await lists(resourceGroup, accountName)
-      // console.log("lists ",list,list.length)
+    // const list = await lists(resourceGroup, accountName)
+    // console.log("lists ",list,list.length)
     // Ensure that you have the desired encoding Transform. This is really a one time setup operation.
     // console.log("creating encoding transform...");
     // let adaptiveStreamingTransform = {
@@ -96,15 +98,16 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     // let outputAssetName = namePrefix + '-output-' + uniqueness;
     let outputLiveStreamName = namePrefix + '-output-' + uniqueness;
     outputLiveStreamName = outputLiveStreamName.slice(0,32)
-    // outputLiveStreamName.splice(18,2)
     // let jobName = namePrefix + '-job-' + uniqueness;
     // let locatorName = "locator" + uniqueness;
-    console.log(uniqueness,uniqueness.length)
-    // console.log("creating live stream...")
+    console.log(uniqueness)
+    console.log("creating live stream...")
+    let liveEventCreate = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
+    // console.log("event",liveEventCreate)
 
-    let liveEvent = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
-    console.log("event",liveEvent)
-
+    console.log("live event start")
+    let liveEventStart = await liveEventStarter(resourceGroup, accountName, outputLiveStreamName)
+    console.log(liveEventStart)
     // console.log("creating output asset...");
     // let outputAsset = await createOutputAsset(resourceGroup, accountName, outputAssetName);
 
@@ -142,21 +145,23 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     console.log("=>",err);
   }
 });
+async function liveEventStarter(resourceGroup, accountName, liveEventName){
+  return await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName, liveEventName)
+}
 async function liveEventCreator(resourceGroup, accountName, liveEventName, uuid){
-  azureMediaServicesClient.liveEvents.create(resourceGroup, accountName, liveEventName,{
-    location : location,
-    LiveEvent : {
-      Properties : {
-        Input : {
-          accessControl : "ip",
-          accessToken : uuid, 
-          keyFrameIntervalDuration : "PT2S",
-          StreamingProtocol : "RTMP",
-          endpoints : "url"
-        }
+
+  return  await azureMediaServicesClient.liveEvents.create(resourceGroup, accountName, liveEventName,{
+    location ,
+      input : {
+        accessControl : "ip",
+        accessToken : uuid, 
+        // keyFrameIntervalDuration : "PT2S",
+        streamingProtocol : "RTMP",
+        // endpoints : "url" 
       }
-    }
   })
+  .then(res=> console.log("res ",res))
+  .catch(err => console.log("err ",err)) 
 }
 async function lists(resourceGroup, accountName){
   return await azureMediaServicesClient.assets.list(resourceGroup, accountName)
