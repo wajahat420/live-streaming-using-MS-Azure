@@ -1,3 +1,4 @@
+//  https://management.azure.com/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName/providers/Microsoft.Media/mediaServices/:accountName/transforms/:transformName?api-version={{api-version}}
 
 
 const os = require("os");
@@ -26,7 +27,7 @@ const aadEndpoint = "https://login.microsoftonline.com/";
 // const aadEndpoint = "https://login.microsoftonline.com/f4d674fc-3ec6-4a06-af9c-0285598e415a/oauth2/v2.0/authorize/"; 
 const armEndpoint = "https://management.azure.com/";
 const subscriptionId = "5f3f711c-c648-4839-8dd8-9315e520d85f";
-const accountName ="Muhammad Anas Masood";
+const accountName ="abc";
 const location ="East US";
 // const aadSecret ="jd.QVvP1H0-8mmxwuL8qWr6b9V7U7Z1._J";
 
@@ -37,17 +38,6 @@ const aadTenantId ="f4d674fc-3ec6-4a06-af9c-0285598e415a";
 
 const resourceGroup ="abc";
 const outputFolder = "Temp";
-
-// "AadClientId": "3e1769df-a14c-4f58-b4b1-c48c69a1dc60",
-// "AadSecret": "76Srkkg~Bbbj7kdk7s.hY766-314Rcn5E_",
-// "AadTenantDomain": "anasm9877gmail.onmicrosoft.com",
-// "AadTenantId": "f4d674fc-3ec6-4a06-af9c-0285598e415a",
-// "AccountName": "abc",
-// "Location": "East US",
-// "ResourceGroup": "abc",
-// "SubscriptionId": "5f3f711c-c648-4839-8dd8-9315e520d85f",
-// "ArmAadAudience": "https://management.core.windows.net",
-// "ArmEndpoint": "https://management.azure.com"
 
 // vaultUri = "https://live-key.vault.azure.net/"
 
@@ -80,13 +70,12 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     activeDirectoryEndpointUrl: aadEndpoint  
   }
 }, async function(err, credentials, subscriptions) {
+  // console.log("credentials",credentials)
     if (err){
-      console.log("credentials",credentials)
       return console.log("=>>>",err)
     } ;
     azureMediaServicesClient = new MediaServices(credentials, subscriptionId, armEndpoint, { noRetryPolicy: true });
     console.log("connected");
-
 
   parseArguments();
     try {
@@ -97,9 +86,9 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     let adaptiveStreamingTransform = {
         odatatype: "#Microsoft.Media.BuiltInStandardEncoderPreset",
         presetName: "AdaptiveStreaming"
-    };
+    }; 
     let encodingTransform = await ensureTransformExists(resourceGroup, accountName, encodingTransformName, adaptiveStreamingTransform);
-
+    const namePrefix = "pledge"
     console.log("getting job input from arguments...");
     let uniqueness = uuidv4();
     let input = await getJobInputFromArguments(uniqueness);
@@ -107,6 +96,8 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     let jobName = namePrefix + '-job-' + uniqueness;
     let locatorName = "locator" + uniqueness;
 
+    // accountName = "abc"
+    // let accountName = "abc"
     console.log("creating output asset...");
     let outputAsset = await createOutputAsset(resourceGroup, accountName, outputAssetName);
 
@@ -122,7 +113,7 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
       let locator = await createStreamingLocator(resourceGroup, accountName, outputAsset.name, locatorName);
 
       let urls = await getStreamingUrls(resourceGroup, accountName, locator.name);
-
+      // console.log("streaming URLs \n",urls)
       console.log("deleting jobs ...");
       await azureMediaServicesClient.jobs.deleteMethod(resourceGroup, accountName, encodingTransformName, jobName);
      // await azureMediaServicesClient.assets.deleteMethod(resourceGroup, accountName, outputAsset.name);
@@ -153,7 +144,7 @@ async function downloadResults(resourceGroup, accountName, assetName, resultsFol
     expiryTime: date
   }
   let assetContainerSas = await azureMediaServicesClient.assets.listContainerSas(resourceGroup, accountName, assetName, input);
-
+  console.log("assets \n",assetContainerSas)
   let containerSasUrl = assetContainerSas.assetContainerSasUrls[0] || null;
   let sasUri = url.parse(containerSasUrl);
   let sharedBlobService = azureStorage.createBlobServiceWithSas(sasUri.host, sasUri.search);
@@ -269,16 +260,17 @@ async function createInputAsset(resourceGroup, accountName, assetName, fileToUpl
 
 async function ensureTransformExists(resourceGroup, accountName, transformName, preset) {
   let transform = await azureMediaServicesClient.transforms.get(resourceGroup, accountName, transformName);
-if (!transform) {
-    transform = await azureMediaServicesClient.transforms.createOrUpdate(resourceGroup, accountName, transformName, {
-    name: transformName,
-    location: location,
-    outputs: [{
-      preset: preset
-    }]
-  });
-}
-return transform;
+
+  if (!transform) {
+      transform = await azureMediaServicesClient.transforms.createOrUpdate(resourceGroup, accountName, transformName, {
+      name: transformName,
+      location: location,
+      outputs: [{
+        preset: preset
+      }]
+    });
+  }
+  return transform;
 }
 
 async function createStreamingLocator(resourceGroup, accountName, assetName, locatorName)
@@ -302,7 +294,7 @@ async function getStreamingUrls(resourceGroup, accountName, locatorName)
   // Make sure the streaming endpoint is in the "Running" state.
 
   let streamingEndpoint = await azureMediaServicesClient.streamingEndpoints.get(resourceGroup, accountName, "default");
-
+  console.log("endpoint = ",streamingEndpoint)
   let paths = await azureMediaServicesClient.streamingLocators.listPaths(resourceGroup, accountName, locatorName);
 
    for (let i = 0; i < paths.streamingPaths.length; i++){
