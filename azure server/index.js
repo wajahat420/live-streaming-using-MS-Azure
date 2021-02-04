@@ -80,61 +80,87 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
   parseArguments();
     try {
 
-      
+      const list = await lists(resourceGroup, accountName)
+      // console.log("lists ",list,list.length)
     // Ensure that you have the desired encoding Transform. This is really a one time setup operation.
-    console.log("creating encoding transform...");
-    let adaptiveStreamingTransform = {
-        odatatype: "#Microsoft.Media.BuiltInStandardEncoderPreset",
-        presetName: "AdaptiveStreaming"
-    }; 
-    let encodingTransform = await ensureTransformExists(resourceGroup, accountName, encodingTransformName, adaptiveStreamingTransform);
+    // console.log("creating encoding transform...");
+    // let adaptiveStreamingTransform = {
+    //     odatatype: "#Microsoft.Media.BuiltInStandardEncoderPreset",
+    //     presetName: "AdaptiveStreaming"
+    // }; 
+    // let encodingTransform = await ensureTransformExists(resourceGroup, accountName, encodingTransformName, adaptiveStreamingTransform);
+    // console.log("getting job input from arguments...");
     const namePrefix = "pledge"
-    console.log("getting job input from arguments...");
     let uniqueness = uuidv4();
-    let input = await getJobInputFromArguments(uniqueness);
-    let outputAssetName = namePrefix + '-output-' + uniqueness;
-    let jobName = namePrefix + '-job-' + uniqueness;
-    let locatorName = "locator" + uniqueness;
+    // let input = await getJobInputFromArguments(uniqueness);
+    // let outputAssetName = namePrefix + '-output-' + uniqueness;
+    let outputLiveStreamName = namePrefix + '-output-' + uniqueness;
+    outputLiveStreamName = outputLiveStreamName.slice(0,32)
+    // outputLiveStreamName.splice(18,2)
+    // let jobName = namePrefix + '-job-' + uniqueness;
+    // let locatorName = "locator" + uniqueness;
+    console.log(uniqueness,uniqueness.length)
+    // console.log("creating live stream...")
 
-    // accountName = "abc"
-    // let accountName = "abc"
-    console.log("creating output asset...");
-    let outputAsset = await createOutputAsset(resourceGroup, accountName, outputAssetName);
+    let liveEvent = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
+    console.log("event",liveEvent)
 
-    console.log("submitting job...");
-    let job = await submitJob(resourceGroup, accountName, encodingTransformName, jobName, input, outputAsset.name);
+    // console.log("creating output asset...");
+    // let outputAsset = await createOutputAsset(resourceGroup, accountName, outputAssetName);
 
-    console.log("waiting for job to finish...");
-    job = await waitForJobToFinish(resourceGroup, accountName, encodingTransformName, jobName);
+    // console.log("submitting job...");
+    // let job = await submitJob(resourceGroup, accountName, encodingTransformName, jobName, input, outputAsset.name);
 
-    if (job.state == "Finished") {
-      await downloadResults(resourceGroup, accountName, outputAsset.name, outputFolder);
+    // console.log("waiting for job to finish...");
+    // job = await waitForJobToFinish(resourceGroup, accountName, encodingTransformName, jobName);
 
-      let locator = await createStreamingLocator(resourceGroup, accountName, outputAsset.name, locatorName);
+    // if (job.state == "Finished") {
+    //   await downloadResults(resourceGroup, accountName, outputAsset.name, outputFolder);
 
-      let urls = await getStreamingUrls(resourceGroup, accountName, locator.name);
-      // console.log("streaming URLs \n",urls)
-      console.log("deleting jobs ...");
-      await azureMediaServicesClient.jobs.deleteMethod(resourceGroup, accountName, encodingTransformName, jobName);
-     // await azureMediaServicesClient.assets.deleteMethod(resourceGroup, accountName, outputAsset.name);
+    //   let locator = await createStreamingLocator(resourceGroup, accountName, outputAsset.name, locatorName);
 
-      let jobInputAsset = input;
-      if (jobInputAsset && jobInputAsset.assetName) {
-        await azureMediaServicesClient.assets.deleteMethod(resourceGroup, accountName, jobInputAsset.assetName);
-      }
-    } else if (job.state == "Error") {
-      console.log(`${job.name} failed. Error details:`);
-      console.log(job.outputs[0].error);
-    } else if (job.state == "Canceled") {
-      console.log(`${job.name} was unexpectedly canceled.`);
-    } else {
-      console.log(`${job.name} is still in progress.  Current state is ${job.state}.`);
-    }
-    console.log("done with sample");
+    //   let urls = await getStreamingUrls(resourceGroup, accountName, locator.name);
+    //   // console.log("streaming URLs \n",urls)
+    //   console.log("deleting jobs ...");
+    //   await azureMediaServicesClient.jobs.deleteMethod(resourceGroup, accountName, encodingTransformName, jobName);
+    //  // await azureMediaServicesClient.assets.deleteMethod(resourceGroup, accountName, outputAsset.name);
+
+    //   let jobInputAsset = input;
+    //   if (jobInputAsset && jobInputAsset.assetName) {
+    //     await azureMediaServicesClient.assets.deleteMethod(resourceGroup, accountName, jobInputAsset.assetName);
+    //   }
+    // } else if (job.state == "Error") {
+    //   console.log(`${job.name} failed. Error details:`);
+    //   console.log(job.outputs[0].error);
+    // } else if (job.state == "Canceled") {
+    //   console.log(`${job.name} was unexpectedly canceled.`);
+    // } else {
+    //   console.log(`${job.name} is still in progress.  Current state is ${job.state}.`);
+    // }
+    // console.log("done with sample");
   } catch (err) {
     console.log("=>",err);
   }
 });
+async function liveEventCreator(resourceGroup, accountName, liveEventName, uuid){
+  azureMediaServicesClient.liveEvents.create(resourceGroup, accountName, liveEventName,{
+    location : location,
+    LiveEvent : {
+      Properties : {
+        Input : {
+          accessControl : "ip",
+          accessToken : uuid, 
+          keyFrameIntervalDuration : "PT2S",
+          StreamingProtocol : "RTMP",
+          endpoints : "url"
+        }
+      }
+    }
+  })
+}
+async function lists(resourceGroup, accountName){
+  return await azureMediaServicesClient.assets.list(resourceGroup, accountName)
+}
 
 async function downloadResults(resourceGroup, accountName, assetName, resultsFolder) {
   let date = new Date();
@@ -144,7 +170,7 @@ async function downloadResults(resourceGroup, accountName, assetName, resultsFol
     expiryTime: date
   }
   let assetContainerSas = await azureMediaServicesClient.assets.listContainerSas(resourceGroup, accountName, assetName, input);
-  console.log("assets \n",assetContainerSas)
+  // console.log("assets \n",assetContainerSas)
   let containerSasUrl = assetContainerSas.assetContainerSasUrls[0] || null;
   let sasUri = url.parse(containerSasUrl);
   let sharedBlobService = azureStorage.createBlobServiceWithSas(sasUri.host, sasUri.search);
@@ -230,6 +256,7 @@ async function getJobInputFromArguments(resourceGroup, accountName, uniqueness) 
 
 async function createOutputAsset(resourceGroup, accountName, assetName) {
     return await azureMediaServicesClient.assets.createOrUpdate(resourceGroup, accountName, assetName, {});
+
 }
 
 async function createInputAsset(resourceGroup, accountName, assetName, fileToUpload) {
