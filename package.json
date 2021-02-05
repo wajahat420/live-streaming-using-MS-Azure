@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "base-64": "^1.0.0",
+    "node-fetch": "^2.6.1",
     "random-animal-name-generator": "^0.1.1",
     "react": "16.13.1",
     "react-native": "0.63.4",

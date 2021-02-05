@@ -48,7 +48,35 @@ export default class Index extends Component {
   }
 
 
+  async componentDidMount(){
+    console.log("axios")
+    // fetch('https://jsonplaceholder.typicode.com/posts/1')
+    // .then(res=>console.log(res))
+    // .catch(err=>console.log(err))
 
+  //   fetch('https://jsonplaceholder.typicode.com/posts/1', {
+  //     method: 'GET'
+  //  })
+  //  .then((response) => response.json())
+  //  .then((responseJson) => {
+  //     console.log(responseJson);
+  //     this.setState({
+  //        data: responseJson
+  //     })
+  //  })
+  //  .catch((error) => {
+  //     console.error(error);
+  //  });
+  // fetch("http://192.168.0.113:5000/check",{
+  //   method : "GET"
+  // })
+  //   .then(res=>console.log(res))
+  //   .catch(err=>console.log(err))
+
+    axios.get("http://192.168.0.113:5050/video/startLiveStream")
+    .then(res=>console.log(res.data))
+    .catch(err=>console.log(err))
+  }
 
   render() {
     const { showStreamIDInputDialog, showStreamIDDialog, generatedStreamID, mux_stream_key, mux_playback_id } = this.state;
@@ -98,7 +126,6 @@ export default class Index extends Component {
         playback_id = {mux_playback_id}
       />
     }
-    // console.log("navigate = ",this.state.navigate)
 
     return (
       <>
@@ -114,22 +141,7 @@ export default class Index extends Component {
     // Clipboard.setString(generatedStreamID);
 
 
-    let mux = []
-    // try {
-    await mux_instance.post("/video/v1/live-streams", {
-      "playback_policy": ["public"],  
-      "new_asset_settings": {
-        "playback_policy": ["public"]
-      },
-      "reconnect_window" : 30,
-      "status" : "active"          
-    })
-    .then(res=>mux = res)
-    .catch(err=> console.log("error = ", err))
 
-    const mux_stream_key = mux.data.data.id;
-    const mux_playback_id = mux.data.data.playback_ids[0].id;
-    console.log(mux.data)
     // const server_response = await axios.post(`${SERVER_BASE_URL}/stream`, {
     //   id: generatedStreamID,
     //   mux_stream_key,

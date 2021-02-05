@@ -10,10 +10,7 @@ const url = require('url');
 const fs = require('fs');
 const fetch = require('node-fetch');
 
-
 const MediaServices = require('azure-arm-mediaservices');
-// import { AzureMediaServices, AzureMediaServicesModels, AzureMediaServicesMappers } from "@azure/arm-mediaservices";
-// const MediaServices = AzureMediaServices
 const msRestAzure = require('ms-rest-azure');
 const msRest = require('ms-rest');
 const azureStorage = require('azure-storage');
@@ -92,22 +89,28 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     // }; 
     // let encodingTransform = await ensureTransformExists(resourceGroup, accountName, encodingTransformName, adaptiveStreamingTransform);
     // console.log("getting job input from arguments...");
-    const namePrefix = "pledge"
     let uniqueness = uuidv4();
+    const namePrefix = "pledge"
+    let outputLiveStreamName = namePrefix + '-' + uniqueness;
+    outputLiveStreamName = outputLiveStreamName.slice(0,32)
     // let input = await getJobInputFromArguments(uniqueness);
     // let outputAssetName = namePrefix + '-output-' + uniqueness;
-    let outputLiveStreamName = namePrefix + '-output-' + uniqueness;
-    outputLiveStreamName = outputLiveStreamName.slice(0,32)
     // let jobName = namePrefix + '-job-' + uniqueness;
     // let locatorName = "locator" + uniqueness;
     console.log(uniqueness)
     console.log("creating live stream...")
     let liveEventCreate = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
-    // console.log("event",liveEventCreate)
-
-    console.log("live event start")
+    // outputLiveStreamName = "pledge-output-e9094c5f-7703-428b"
+    console.log("live event start.")
     let liveEventStart = await liveEventStarter(resourceGroup, accountName, outputLiveStreamName)
     console.log(liveEventStart)
+
+
+      console.log("live event stop")
+      let liveEventStop = await liveEventStoper(resourceGroup, accountName, outputLiveStreamName)
+    // console.log(liveEventStop)
+
+
     // console.log("creating output asset...");
     // let outputAsset = await createOutputAsset(resourceGroup, accountName, outputAssetName);
 
@@ -145,11 +148,21 @@ msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId,
     console.log("=>",err);
   }
 });
+async function liveEventStoper(resourceGroup, accountName, liveEventName, parameters){
+  return await azureMediaServicesClient.liveEvents.stop(resourceGroup, accountName, liveEventName,{
+    removeOutputsOnStop : true
+  })
+}
 async function liveEventStarter(resourceGroup, accountName, liveEventName){
-  return await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName, liveEventName)
+  return await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName,liveEventName)
+  .then(res=> console.log("res ",res))
+  .catch(err => console.log("err ",err)) 
 }
 async function liveEventCreator(resourceGroup, accountName, liveEventName, uuid){
+  // rtmp://d5f0f4e2286548b2bbe62000eac17bd4.channel.media.azure.net:1935/live/e9094c5f7703428bba6b97f5e0b743c6
+  // rtmp://d5f0f4e2286548b2bbe62000eac17bd4.channel.media.azure.net:1935/live/e9094c5f7703428bba6b97f5e0b743c6
 
+  // rtmp://d5f0f4e2286548b2bbe62000eac17bd4.channel.media.azure.net:1935/live/ba167e628d53432d8cefd53d35be1fbc
   return  await azureMediaServicesClient.liveEvents.create(resourceGroup, accountName, liveEventName,{
     location ,
       input : {
