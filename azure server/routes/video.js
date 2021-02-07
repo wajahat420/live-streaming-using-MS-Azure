@@ -55,29 +55,57 @@ router.use("/startLiveStream",async function(req,res){
     let outputLiveStreamName = namePrefix + '-' + uniqueness;
     outputLiveStreamName = outputLiveStreamName.slice(0,32)
 
-    console.log("creating live stream...",uniqueness)
-    let liveEventCreate = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
-    outputLiveStreamName = "pledge-77df23b6-80fe-468a-9ab3-3"
+    
+    // console.log("creating live stream...",uniqueness)
+    // let liveEventCreate = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
+
+    outputLiveStreamName = "pledge-8fd096a0-b0b3-43d6-986f-9"
+
     console.log("live event start.")
     let liveEventStart = await liveEventStarter(resourceGroup, accountName, outputLiveStreamName)
     // console.log(liveEventStart)
-})
-// rtmp://c05737eda3dd49ce8488529d5e579b37.channel.media.azure.net:1935/live/9f1d12dfd462494cadac161641cbe8b8
-// rtmp://c05737eda3dd49ce8488529d5e579b37.channel.media.azure.net:1935/live/9f1d12dfd462494cadac161641cbe8b8
 
-// rtmp://c05737eda3dd49ce8488529d5e579b37.channel.media.azure.net:1935/live/c5ae126b72fa439c91bbdd2ade22791a
-// rtmp://64469879b8894e60ab7c17c22c4d4404.channel.media.azure.net:1935/live/77df23b680fe468a9ab335e2f8929117
+    // console.log("getting endpoints",uniqueness)
+    // getStreamingEndpoint(resourceGroup, accountName, uniqueness)
+})
+async function startingEndpoint(resourceGroupName, accountName, streamingEndpointName="default"){
+    return await azureMediaServicesClient.streamingEndpoints.start(resourceGroupName, accountName, streamingEndpointName,{
+        location,
+        scaleUnits : 2
+    })
+    // .then(res=> console.log("endpoint ",res))
+    // .catch(err => console.log("endpoint err ",err)) 
+    
+}
 async function liveEventStoper(resourceGroup, accountName, liveEventName, parameters){
     return await azureMediaServicesClient.liveEvents.stop(resourceGroup, accountName, liveEventName,{
       removeOutputsOnStop : true
     })
 }
+async function getLiveEvent(resourceGroup, accountName, liveEventName){
+    return await azureMediaServicesClient.liveEvents.get(resourceGroup, accountName, liveEventName)
+}
+async function createStreamLocator(resourceGroupName, accountName, liveEventName){ 
+    return await azureMediaServicesClient.streamingLocators.create(resourceGroupName, accountName, liveEventName,{
+        assetName : liveEventName,
+        streamingPolicyName : "Predefined_ClearStreamingOnly"
+    } )
+}
 async function liveEventStarter(resourceGroup, accountName, liveEventName){
     const a =  await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName,liveEventName)
-    // .then(res=> console.log("res ",res))
-    // .catch(err => console.log("err ",err)) 
-    console.log("a ",a)
-    return a
+    console.log("getting live event")
+    const b =  await getLiveEvent(resourceGroup, accountName, liveEventName)
+    .then(res=> console.log("res ",res,"\n input endpoints = ",res.input.endpoints,"\n output endpoints = ",res.preview.endpoints))
+    .catch(err => console.log("err ",err)) 
+    console.log("starting endpoint")
+    const endpoint = await startingEndpoint(resourceGroup, accountName)
+    console.log("endpoint",endpoint)
+    console.log("creating stream locator")
+    const locator =  await createStreamLocator(resourceGroup, accountName, liveEventName)
+    console.log("locator = ",locator)
+      
+    // console.log("a ",a)
+    // return a
 }
 async function liveEventCreator(resourceGroup, accountName, liveEventName, uuidd){
     // rtmp://d5f0f4e2286548b2bbe62000eac17bd4.channel.media.azure.net:1935/live/e9094c5f7703428bba6b97f5e0b743c6
@@ -85,10 +113,10 @@ async function liveEventCreator(resourceGroup, accountName, liveEventName, uuidd
     // rtmp://d5f0f4e2286548b2bbe62000eac17bd4.channel.media.azure.net:1935/live/ba167e628d53432d8cefd53d35be1fbc
     // rtmp://b3266b86376f46bba75f08048ece7259.channel.media.azure.net:1935/live/bb5d4f3d9e164c0f9be19453633606cc
     // rtmp://8826a9545cc2409ca7b968b0fb682ef5.channel.media.azure.net:1935/live/8fd096a0b0b343d6986f95425686cbe5
-    let uniqueness1 = uuid()
-    let uniqueness2 = uuid()
+    // let uniqueness1 = uuid()
+    // let uniqueness2 = uuid()
     // let uniqueness3 = uuid()
-    console.log("uuid \n",uniqueness1,"\n",uniqueness2)
+    // console.log("uuid \n",uniqueness1,"\n",uniqueness2)
     return  await azureMediaServicesClient.liveEvents.create(resourceGroup, accountName, liveEventName,{
         location ,
         input : {
@@ -97,18 +125,18 @@ async function liveEventCreator(resourceGroup, accountName, liveEventName, uuidd
             // keyFrameIntervalDuration : "PT2S",
             streamingProtocol : "RTMP",
             endpoints : [
-                 {
-                     protocol : "RTMP",
-                     url : "rtmp://b3266b86376f46bba75f08048ece7259.channel.media.azure.net:1935/live/bb5d4f3d9e164c0f9be19453633606cc"
-                 }
+                //  {
+                //      protocol : "RTMP",
+                //      url : "rtmp://b3266b86376f46bba75f08048ece7259.channel.media.azure.net:1935/live/bb5d4f3d9e164c0f9be19453633606cc"
+                //  }
             ] 
         },
         preview : {
             endpoints : [
-                {
-                    protocol : "RTMP",
-                    url : uniqueness2
-                }           
+                // {
+                //     protocol : "RTMP",
+                //     url : uniqueness2
+                // }           
             ] 
         }
     })

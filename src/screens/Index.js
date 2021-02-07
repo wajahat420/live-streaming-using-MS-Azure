@@ -43,7 +43,7 @@ export default class Index extends Component {
     streamIDToView: "",
     generatedStreamID: generateRandomAnimalName().replace(' ', '-').toLocaleLowerCase() + '-' + Math.floor(Math.random() * 100),
     mux_stream_key : "",
-    mux_playback_id : "",
+    mux_playback_id : "https://abc-usea.streaming.media.azure.net/53dc4fc4-76d8-4b3c-9f6e-33a96bbc5c2d/f234b4e5-8991-43b5-aced-46bfd1ed6bb5.ism/manifest",
     navigate : "view"
   }
 
@@ -73,14 +73,14 @@ export default class Index extends Component {
   //   .then(res=>console.log(res))
   //   .catch(err=>console.log(err))
 
-    axios.get("http://192.168.0.113:5050/video/startLiveStream")
-    .then(res=>console.log(res.data))
-    .catch(err=>console.log(err))
+    // axios.get("http://192.168.0.113:5050/video/startLiveStream")
+    // .then(res=>console.log(res.data))
+    // .catch(err=>console.log(err))
   }
 
   render() {
     const { showStreamIDInputDialog, showStreamIDDialog, generatedStreamID, mux_stream_key, mux_playback_id } = this.state;
-    console.log("playback_id ",mux_playback_id,"stream_key = ", mux_stream_key)
+    // console.log("playback_id ",mux_playback_id,"stream_key = ", mux_stream_key)
 
     let navigateTo = 
     <View style={styles.wrapper}>

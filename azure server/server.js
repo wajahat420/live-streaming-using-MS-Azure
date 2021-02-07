@@ -26,7 +26,7 @@ app.use(bodyParser.urlencoded({ extended: false, limit : '50mb',parameterLimit :
 app.use(bodyParser.json());
 app.use("/video",video)
 
-app.get("/check",(req,res)=>{
+app.get("/",(req,res)=>{
     console.log("working")
     res.send("working")
 })

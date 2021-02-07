@@ -50,7 +50,7 @@ export default class ViewStream extends Component {
         <Text style={{textAlign : "center", fontSize : 20,fontWeight:"bold",top:20}}>Video</Text>
         <Video
           // source={{ uri: `https://stream.mux.com/H9Alx901r13l99ksaYUbMY1HfJmCOS01X4IUQSBE6Zncc.m3u8` }}
-          source={{ uri: `https://123com.blob.core.windows.net/asset-940a908f-1ced-4346-94d3-08b2584c9be5/video_1350000/10181880.mp4` }}
+          source={{ uri: `https://abc-usea.streaming.media.azure.net/7b4fcfff-ca46-421e-81fb-939a8ba30304/e780a804-6ff8-4494-afc6-2effaaa2f590.ism/manifest(format=m3u8-aapl)` }}
           ref={ref => {
             this.player = ref;
           }}
