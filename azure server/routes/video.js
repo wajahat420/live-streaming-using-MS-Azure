@@ -17,7 +17,7 @@ const azureStorage = require('azure-storage');
 
 // credentials
 const armAadAudience = "https://management.core.windows.net/";
-const AadTenantDomain = "anasm9877gmail.onmicrosoft.com"
+// const AadTenantDomain = "anasm9877gmail.onmicrosoft.com"
 const aadEndpoint = "https://login.microsoftonline.com/"; 
 const armEndpoint = "https://management.azure.com/";
 const subscriptionId = "5f3f711c-c648-4839-8dd8-9315e520d85f";
@@ -29,10 +29,11 @@ const aadTenantId ="f4d674fc-3ec6-4a06-af9c-0285598e415a";
 const resourceGroup ="abc";
 const outputFolder = "Temp";
 // end
+const moment = require("moment");
 
 
 let azureMediaServicesClient;
-
+let liveEventName = "pledge-8fd096a0-b0b3-43d6-986f-9"
 
 msRestAzure.loginWithServicePrincipalSecret(aadClientId, aadSecret, aadTenantId, {
     environment: { 
@@ -52,49 +53,68 @@ router.use("/startLiveStream",async function(req,res){
     
     let uniqueness  = uuid()
     const namePrefix = "pledge"
-    let outputLiveStreamName = namePrefix + '-' + uniqueness;
-    outputLiveStreamName = outputLiveStreamName.slice(0,32)
+    liveEventName = namePrefix + '-' + uniqueness;
+    liveEventName = liveEventName.slice(0,32)
 
     // console.log("creating live stream...",uniqueness)
-    // let liveEventCreate = await liveEventCreator(resourceGroup, accountName, outputLiveStreamName, uniqueness)
+    // await liveEventCreator(resourceGroup, accountName, liveEventName, uniqueness)
 
-    outputLiveStreamName = "OBS"
+    liveEventName = "OBS"
 
     console.log("live event start.")
-    let liveEventStart = await liveEventStarter(resourceGroup, accountName, outputLiveStreamName)
-    // console.log(liveEventStart)
+    let liveEventStart = await liveEventStarter(resourceGroup, accountName, liveEventName)
 
     // console.log("getting endpoints",uniqueness)
     // getStreamingEndpoint(resourceGroup, accountName, uniqueness)
 })
-async function liveEventStarter(resourceGroup, accountName, liveEventName){
-    liveOutputName = "output-123456-123"
-    assetName = "aseetnnn-"+liveEventName.slice(15)
+router.use("/livePaths",async function(req,res){
+    console.log("list paths")
+    await azureMediaServicesClient.streamingLocators.listPaths(resourceGroup, accountName, liveEventName)
+    .then(res=> {
+        console.log("res ",res)
+    })
+    .catch(err => console.log("err ",err)) 
+    res.send("live paths")
+})
 
-    // const a =  await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName,liveEventName)
+// FUNCTIONS
+
+async function liveEventStarter(resourceGroup, accountName, liveEventName){
+    let liveStreamInput = ""
+
+    liveOutputName = "output-123456-123"
+    assetName = "aseet-"+liveEventName.slice(15)
+
+    // await azureMediaServicesClient.liveEvents.start(resourceGroup, accountName,liveEventName)
 
     // console.log("getting live event")
-    // const b =  await getLiveEvent(resourceGroup, accountName, liveEventName)
-    // .then(res=> console.log("res ",res,"\n input endpoints = ",res.input.endpoints,"\n output endpoints = ",res.preview.endpoints))
+    // await getLiveEvent(resourceGroup, accountName, liveEventName)
+    // .then(res=> {
+    //     console.log("res ",res,"\n input endpoints = ",res.input.endpoints,"\n output endpoints = ",res.preview.endpoints)
+    //     liveStreamInput = res.input.endpoints[0].url
+    // })
     // .catch(err => console.log("err ",err)) 
-    
+
+    // console.log("\nliveStreamInput",liveStreamInput,"\n")
+
     // console.log("starting endpoint")
     // const endpoint = await startingEndpoint(resourceGroup, accountName)
     // console.log("endpoint",endpoint)
 
-    console.log("creating live output")
-    const liveOutputs =  await createLiveOutput(resourceGroup, accountName, liveEventName, liveOutputName)
-
     // console.log("creating output asset")  
-    // const outputAsset = await createOutputAsset(resourceGroup, accountName, assetName)
+    // await createOutputAsset(resourceGroup, accountName, assetName)
+
+    // console.log("creating live output")
+    // await createLiveOutput(resourceGroup, accountName, liveEventName, liveOutputName, assetName)
+
+    // console.log("get live output")
+    // await getLiveOutput(resourceGroup, accountName, liveEventName, liveOutputName)
 
     // console.log("creating stream locator")
-    // const locator =  await createStreamLocator(resourceGroup, accountName, liveEventName,assetName)
-    // console.log("locator = ",locator)
+    // await createStreamLocator(resourceGroup, accountName, liveEventName,assetName)
 
     // console.log("get stream locator")
-    // const locator =  await getStreamLocator(resourceGroup, accountName, liveEventName,assetName)
-    // console.log("locator = ",locator)
+    // await getStreamLocator(resourceGroup, accountName, liveEventName)
 
 }
 async function liveEventCreator(resourceGroup, accountName, liveEventName, uuidd){
@@ -131,7 +151,8 @@ async function liveEventCreator(resourceGroup, accountName, liveEventName, uuidd
 }
 
 const uuid = ()=> uuidv4()
-async function getStreamLocator(resourceGroupName, accountName, liveEventName,assetName){ 
+
+async function getStreamLocator(resourceGroupName, accountName, liveEventName){ 
     return await azureMediaServicesClient.streamingLocators.get(resourceGroupName, accountName, liveEventName)
     .then(res=> console.log("res ",res))
     .catch(err => console.log("err ",err)) 
@@ -142,26 +163,31 @@ async function createStreamLocator(resourceGroupName, accountName, liveEventName
         streamingPolicyName : "Predefined_ClearStreamingOnly"
     } )
     .then(res=> console.log("res ",res))
-    .catch(err => console.log("err ",err)) 
-    
+    .catch(err => console.log("err ",err))  
 }
-async function createLiveOutput(resourceGroup, accountName, liveEventName, liveOutputName){
-    // console.log("assetname",liveEventName)
-    return await azureMediaServicesClient.liveOutputs.create(resourceGroup, accountName, liveEventName, liveOutputName, {
-        // properties : {
-            archiveWindowLength : "PT1H30M",
-            assetName : "asset-"+liveEventName,
-        // }
-            // properties : {
-            //         archiveWindowLength : "PT1H",
-            //         assetName : "asset-"+liveEventName
-            // }
+async function createLiveOutput(resourceGroup, accountName, streamingLocatorName, liveOutputName, assetName){
+    return await azureMediaServicesClient.liveOutputs.create(resourceGroup, accountName, streamingLocatorName, liveOutputName, {
+            archiveWindowLength : moment.duration("PT30M"),
+            assetName,
+            hls : {
+                fragmentsPerTsSegment : 5
+            }
     })
     .then(res=> console.log("res ",res))
     .catch(err => console.log("err ",err)) 
-    // return await azureMediaServicesClient.liveOutputs.get(resourceGroup, accountName, liveEventName, "output-20210108-015153")
-   
 }
+// locator-20210108-201303
+// output-20210108-201303
+// liveevent-OBS-20210108-201303    asset
+async function getLiveOutput(resourceGroup, accountName, liveEventName, liveOutputName){
+    // console.log("assetname",liveEventName)
+    return await azureMediaServicesClient.liveOutputs.get(resourceGroup, accountName, liveEventName, liveOutputName)
+    .then(res=> console.log("res ",res)) 
+    .catch(err => console.log("err ",err)) 
+}
+    // return await azureMediaServicesClient.liveOutputs.get(resourceGroup, accountName, liveEventName, "output-20210108-022138")
+    // .then(res=> console.log("res ",res))
+    // .catch(err => console.log("err ",err)) 
 async function createOutputAsset(resourceGroup, accountName, assetName) {
     return await azureMediaServicesClient.assets.createOrUpdate(resourceGroup, accountName, assetName, {});
 }
