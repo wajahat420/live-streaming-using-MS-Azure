@@ -58,7 +58,6 @@ class App extends React.Component {
 
   state = {
     isStreaming: false,
-    isPublishing: false,
     publishButtonText: 'Start Publishing',
   };
 
@@ -99,8 +98,8 @@ class App extends React.Component {
     });
   };
 
-
   render() {
+    console.log("key = ",this.props.stream_key)
     const {publishButtonText}  = this.state
     return (
       <>
@@ -124,7 +123,8 @@ class App extends React.Component {
             //   `rtmp://live.mux.com/app/36109526-664e-a203-dc0e-b60549629c20`
             // }
             outputUrl={
-              `rtmp://global-live.mux.com:5222/app/${this.props.mux_stream_key}`
+              // this.props.stream_key
+              `rtmp://bce7407e69cd46f29dc3575ed018fb55.channel.media.azure.net:1935/live/4c46208b3e4b4bc8ae22e66e1384abd5/default`
             }
             camera={this.cameraSettings}
             audio={this.audioSettings}

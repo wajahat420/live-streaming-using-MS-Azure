@@ -45,12 +45,13 @@ export default class ViewStream extends Component {
     const { isInputContainerVisible, text, comments } = this.state;
     // https://stream.mux.com/TxIx4vDvNukOEPTsl4IP4j4to4z7MOMJkEHjBcrxo00c.m3u8
     // http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4
+    console.log("id",this.props.playback_id)
     return (
       <View style={styles.container}>
         <Text style={{textAlign : "center", fontSize : 20,fontWeight:"bold",top:20}}>Video</Text>
         <Video
           // source={{ uri: `https://stream.mux.com/H9Alx901r13l99ksaYUbMY1HfJmCOS01X4IUQSBE6Zncc.m3u8` }}
-          source={{ uri: `https://abc-usea.streaming.media.azure.net/7b4fcfff-ca46-421e-81fb-939a8ba30304/e780a804-6ff8-4494-afc6-2effaaa2f590.ism/manifest(format=m3u8-aapl)` }}
+          source={{ uri: this.props.playback_id }}
           ref={ref => {
             this.player = ref;
           }}

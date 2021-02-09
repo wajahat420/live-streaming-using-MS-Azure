@@ -42,45 +42,41 @@ export default class Index extends Component {
     showStreamIDDialog: false,
     streamIDToView: "",
     generatedStreamID: generateRandomAnimalName().replace(' ', '-').toLocaleLowerCase() + '-' + Math.floor(Math.random() * 100),
-    mux_stream_key : "",
-    mux_playback_id : "https://abc-usea.streaming.media.azure.net/53dc4fc4-76d8-4b3c-9f6e-33a96bbc5c2d/f234b4e5-8991-43b5-aced-46bfd1ed6bb5.ism/manifest",
-    navigate : "view"
+    stream_key : "",
+    playback_id : "",
+    navigate : "publish"
   }
-
 
   async componentDidMount(){
     console.log("axios")
-    // fetch('https://jsonplaceholder.typicode.com/posts/1')
-    // .then(res=>console.log(res))
-    // .catch(err=>console.log(err))
 
-  //   fetch('https://jsonplaceholder.typicode.com/posts/1', {
-  //     method: 'GET'
-  //  })
-  //  .then((response) => response.json())
-  //  .then((responseJson) => {
-  //     console.log(responseJson);
-  //     this.setState({
-  //        data: responseJson
-  //     })
-  //  })
-  //  .catch((error) => {
-  //     console.error(error);
-  //  });
-  // fetch("http://192.168.0.113:5000/check",{
-  //   method : "GET"
-  // })
-  //   .then(res=>console.log(res))
-  //   .catch(err=>console.log(err))
+    // axios.get("http://192.168.0.113:5050/video/livePaths")
+    // .then(res=>{
+    //   console.log(res.data)
+    //   this.setState({playback_id : res.data})
+
+    // })
+    // .catch(err=>console.log(err))
 
     // axios.get("http://192.168.0.113:5050/video/startLiveStream")
-    // .then(res=>console.log(res.data))
+    // .then(res=>{
+    //   console.log(res.data)
+    //   this.setState({stream_key : res.data})
+
+    // })
     // .catch(err=>console.log(err))
+
+
+    // axios({
+    //   method: 'post',
+    //   url: '/startLiveStream',
+    //   data: data
+    // })
+
   }
 
   render() {
-    const { showStreamIDInputDialog, showStreamIDDialog, generatedStreamID, mux_stream_key, mux_playback_id } = this.state;
-    // console.log("playback_id ",mux_playback_id,"stream_key = ", mux_stream_key)
+    const { showStreamIDInputDialog, showStreamIDDialog ,generatedStreamID, stream_key, playback_id } = this.state;
 
     let navigateTo = 
     <View style={styles.wrapper}>
@@ -116,14 +112,13 @@ export default class Index extends Component {
     if(this.state.navigate === "publish"){
       navigateTo = 
       <Publish
-        mux_stream_key = {mux_stream_key}
+        stream_key = {stream_key}
         navigateTO = {()=>this.setState({navigate : "view"})}
-        // mux_stream_key = {"8d4c24f6-6d8a-af16-2931-4b9e209c706"}
       />
     }else if(this.state.navigate === "view"){
       navigateTo = 
       <ViewStream
-        playback_id = {mux_playback_id}
+        playback_id = {playback_id}
       />
     }
 
